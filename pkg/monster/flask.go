@@ -95,6 +95,12 @@ func flaskUnsign(c *Cookie, secret []byte) bool {
 	parsedData := c.parsedDataFor(flaskDecoder).(*flaskParsedData)
 	toBeSigned := parsedData.data + flaskSeparator + parsedData.timestamp
 
+	// If this is a compressed cookie, it needs to have the dot in front which
+	// we previously stripped from `data`.
+	if parsedData.compressed {
+		toBeSigned = "." + toBeSigned
+	}
+
 	switch parsedData.algorithm {
 	case "sha1":
 		// Flask forces us to derive a key for HMAC-ing.
