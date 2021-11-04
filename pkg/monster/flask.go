@@ -13,6 +13,7 @@ type flaskParsedData struct {
 	signature        string
 	decodedSignature []byte
 	algorithm        string
+	toBeSigned       []byte
 
 	compressed bool
 	parsed     bool
@@ -31,7 +32,6 @@ const (
 	flaskMinLength = 10
 
 	flaskSeparator = `.`
-	flaskSalt      = `cookie-session`
 )
 
 var (
@@ -41,6 +41,8 @@ var (
 		48: "sha384",
 		64: "sha512",
 	}
+
+	flaskSalt = []byte(`cookie-session`)
 )
 
 func flaskDecode(c *Cookie) bool {
@@ -84,60 +86,66 @@ func flaskDecode(c *Cookie) bool {
 	}
 
 	parsedData.decodedSignature = decodedSignature
+	parsedData.toBeSigned = []byte(parsedData.data + flaskSeparator + parsedData.timestamp)
+
+	// If this is a compressed cookie, it needs to have the dot in front which
+	// we previously stripped from `data`.
+	if parsedData.compressed {
+		parsedData.toBeSigned = append([]byte("."), parsedData.toBeSigned...)
+	}
+
 	parsedData.parsed = true
 	c.wasDecodedBy(flaskDecoder, &parsedData)
-
 	return true
 }
 
 func flaskUnsign(c *Cookie, secret []byte) bool {
 	// We need to extract `toBeSigned` to prepare what we'll be signing.
 	parsedData := c.parsedDataFor(flaskDecoder).(*flaskParsedData)
-	toBeSigned := parsedData.data + flaskSeparator + parsedData.timestamp
 
-	// If this is a compressed cookie, it needs to have the dot in front which
-	// we previously stripped from `data`.
-	if parsedData.compressed {
-		toBeSigned = "." + toBeSigned
-	}
+	// Derive the correct signature, if this was the correct secret key.
+	computedSignature := flaskCompute(parsedData.algorithm, secret, parsedData.toBeSigned)
 
-	switch parsedData.algorithm {
+	// Compare this signature to the one in the `Cookie`.
+	return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
+}
+
+func flaskResign(c *Cookie, data string, secret []byte) string {
+	// We need to extract `toBeSigned` to prepare what we'll be signing.
+	parsedData := c.parsedDataFor(flaskDecoder).(*flaskParsedData)
+
+	// We need to assemble the TBS string with new data.
+	toBeSigned := base64.RawURLEncoding.EncodeToString([]byte(data)) + flaskSeparator + parsedData.timestamp
+
+	return toBeSigned + flaskSeparator + base64.RawURLEncoding.EncodeToString(flaskCompute(parsedData.algorithm, secret, []byte(toBeSigned)))
+}
+
+func flaskCompute(algorithm string, secret []byte, data []byte) []byte {
+	switch algorithm {
 	case "sha1":
 		// Flask forces us to derive a key for HMAC-ing.
-		derivedKey := sha1HMAC(secret, []byte(flaskSalt))
+		derivedKey := sha1HMAC(secret, flaskSalt)
 
 		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha1HMAC(derivedKey, []byte(toBeSigned))
-
-		// Compare this signature to the one in the `Cookie`.
-		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
+		return sha1HMAC(derivedKey, data)
 	case "sha256":
 		// Flask forces us to derive a key for HMAC-ing.
-		derivedKey := sha256HMAC(secret, []byte(flaskSalt))
+		derivedKey := sha256HMAC(secret, flaskSalt)
 
 		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha256HMAC(derivedKey, []byte(toBeSigned))
-
-		// Compare this signature to the one in the `Cookie`.
-		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
+		return sha256HMAC(derivedKey, data)
 	case "sha384":
 		// Flask forces us to derive a key for HMAC-ing.
-		derivedKey := sha384HMAC(secret, []byte(flaskSalt))
+		derivedKey := sha384HMAC(secret, flaskSalt)
 
 		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha384HMAC(derivedKey, []byte(toBeSigned))
-
-		// Compare this signature to the one in the `Cookie`.
-		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
+		return sha384HMAC(derivedKey, data)
 	case "sha512":
 		// Flask forces us to derive a key for HMAC-ing.
-		derivedKey := sha512HMAC(secret, []byte(flaskSalt))
+		derivedKey := sha512HMAC(secret, flaskSalt)
 
 		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha512HMAC(derivedKey, []byte(toBeSigned))
-
-		// Compare this signature to the one in the `Cookie`.
-		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
+		return sha512HMAC(derivedKey, data)
 	default:
 		panic("unknown algorithm")
 	}

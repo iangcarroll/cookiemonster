@@ -118,6 +118,8 @@ func (c *Cookie) Resign(data string) string {
 	switch c.unsignedBy {
 	case djangoDecoder:
 		return djangoResign(c, data, c.unsignedKey)
+	case flaskDecoder:
+		return flaskResign(c, data, c.unsignedKey)
 	default:
 		return ""
 	}

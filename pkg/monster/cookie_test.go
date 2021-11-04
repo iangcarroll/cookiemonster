@@ -141,3 +141,38 @@ func TestDecodeLaravel(t *testing.T) {
 		t.Errorf("could not unsign an unsignable cookie")
 	}
 }
+
+func TestDecodeFlask(t *testing.T) {
+	validCookie := NewCookie("eyJjc3JmX3Rva2VuIjoiYjAxNDZjZGIzZGZiMTliYWM1N2EyNGU5M2U2YWVhNDdhOTNlNzVlZiJ9.YYN0SA.B5roVjMHOW3IYSrohS9FhgCFlHk")
+	if !validCookie.Decode() {
+		t.Errorf("cannot decode valid flask cookie")
+	}
+
+	wl := NewWordlist()
+	if err := wl.LoadFromArray([][]byte{[]byte("secret_key")}); err != nil {
+		t.Errorf("could not LoadFromArray")
+	}
+
+	if _, success := validCookie.Unsign(wl, 100); !success {
+		t.Errorf("could not unsign an unsignable cookie")
+	}
+}
+
+func BenchmarkUnsignFlask(b *testing.B) {
+	wl := NewWordlist()
+	if err := wl.LoadFromArray([][]byte{[]byte("secret_key"), []byte("not a secret key"), []byte("not the secret key")}); err != nil {
+		b.Error("could not LoadFromArray")
+	}
+
+	for n := 0; n < b.N; n++ {
+		validCookie := NewCookie("eyJjc3JmX3Rva2VuIjoiYjAxNDZjZGIzZGZiMTliYWM1N2EyNGU5M2U2YWVhNDdhOTNlNzVlZiJ9.YYN0SA.B5roVjMHOW3IYSrohS9FhgCFlHk")
+
+		if !validCookie.Decode() {
+			b.Error("cannot decode valid flask cookie")
+		}
+
+		if _, success := validCookie.Unsign(wl, 100); !success {
+			b.Error("could not unsign an unsignable cookie")
+		}
+	}
+}

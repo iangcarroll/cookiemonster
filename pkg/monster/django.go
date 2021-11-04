@@ -13,6 +13,7 @@ type djangoParsedData struct {
 	signature        string
 	decodedSignature []byte
 	algorithm        string
+	toBeSigned       []byte
 
 	compressed bool
 	parsed     bool
@@ -84,6 +85,7 @@ func djangoDecode(c *Cookie) bool {
 	}
 
 	parsedData.decodedSignature = decodedSignature
+	parsedData.toBeSigned = []byte(parsedData.data + djangoSeparator + parsedData.timestamp)
 	parsedData.parsed = true
 	c.wasDecodedBy(djangoDecoder, &parsedData)
 
@@ -93,48 +95,12 @@ func djangoDecode(c *Cookie) bool {
 func djangoUnsign(c *Cookie, secret []byte) bool {
 	// We need to extract `toBeSigned` to prepare what we'll be signing.
 	parsedData := c.parsedDataFor(djangoDecoder).(*djangoParsedData)
-	toBeSigned := parsedData.data + djangoSeparator + parsedData.timestamp
 
-	switch parsedData.algorithm {
-	case "sha1":
-		// Django forces us to derive a key for HMAC-ing.
-		derivedKey := sha1Digest(djangoSalt + string(secret))
+	// Derive the correct signature, if this was the correct secret key.
+	computedSignature := djangoCompute(parsedData.algorithm, secret, parsedData.toBeSigned)
 
-		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha1HMAC(derivedKey, []byte(toBeSigned))
-
-		// Compare this signature to the one in the `Cookie`.
-		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
-	case "sha256":
-		// Django forces us to derive a key for HMAC-ing.
-		derivedKey := sha256Digest(djangoSalt + string(secret))
-
-		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha256HMAC(derivedKey, []byte(toBeSigned))
-
-		// Compare this signature to the one in the `Cookie`.
-		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
-	case "sha384":
-		// Django forces us to derive a key for HMAC-ing.
-		derivedKey := sha384Digest(djangoSalt + string(secret))
-
-		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha384HMAC(derivedKey, []byte(toBeSigned))
-
-		// Compare this signature to the one in the `Cookie`.
-		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
-	case "sha512":
-		// Django forces us to derive a key for HMAC-ing.
-		derivedKey := sha512Digest(djangoSalt + string(secret))
-
-		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha512HMAC(derivedKey, []byte(toBeSigned))
-
-		// Compare this signature to the one in the `Cookie`.
-		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
-	default:
-		panic("unknown algorithm")
-	}
+	// Compare this signature to the one in the `Cookie`.
+	return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
 }
 
 func djangoResign(c *Cookie, data string, secret []byte) string {
@@ -144,35 +110,37 @@ func djangoResign(c *Cookie, data string, secret []byte) string {
 	// We need to assemble the TBS string with new data.
 	toBeSigned := base64.RawURLEncoding.EncodeToString([]byte(data)) + djangoSeparator + parsedData.timestamp
 
-	switch parsedData.algorithm {
+	// Derive the correct signature, if this was the correct secret key.
+	computedSignature := djangoCompute(parsedData.algorithm, secret, []byte(toBeSigned))
+	return toBeSigned + djangoSeparator + base64.RawURLEncoding.EncodeToString(computedSignature)
+}
+
+func djangoCompute(algorithm string, secret []byte, data []byte) []byte {
+	switch algorithm {
 	case "sha1":
 		// Django forces us to derive a key for HMAC-ing.
 		derivedKey := sha1Digest(djangoSalt + string(secret))
 
 		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha1HMAC(derivedKey, []byte(toBeSigned))
-		return toBeSigned + djangoSeparator + base64.RawURLEncoding.EncodeToString(computedSignature)
+		return sha1HMAC(derivedKey, data)
 	case "sha256":
 		// Django forces us to derive a key for HMAC-ing.
 		derivedKey := sha256Digest(djangoSalt + string(secret))
 
 		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha256HMAC(derivedKey, []byte(toBeSigned))
-		return toBeSigned + djangoSeparator + base64.RawURLEncoding.EncodeToString(computedSignature)
+		return sha256HMAC(derivedKey, data)
 	case "sha384":
 		// Django forces us to derive a key for HMAC-ing.
 		derivedKey := sha384Digest(djangoSalt + string(secret))
 
 		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha384HMAC(derivedKey, []byte(toBeSigned))
-		return toBeSigned + djangoSeparator + base64.RawURLEncoding.EncodeToString(computedSignature)
+		return sha384HMAC(derivedKey, data)
 	case "sha512":
 		// Django forces us to derive a key for HMAC-ing.
 		derivedKey := sha512Digest(djangoSalt + string(secret))
 
 		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha512HMAC(derivedKey, []byte(toBeSigned))
-		return toBeSigned + djangoSeparator + base64.RawURLEncoding.EncodeToString(computedSignature)
+		return sha512HMAC(derivedKey, data)
 	default:
 		panic("unknown algorithm")
 	}

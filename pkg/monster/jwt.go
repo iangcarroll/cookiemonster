@@ -13,6 +13,7 @@ type jwtParsedData struct {
 	signature        string
 	decodedSignature []byte
 	algorithm        string
+	toBeSigned       []byte
 
 	parsed bool
 }
@@ -76,39 +77,39 @@ func jwtDecode(c *Cookie) bool {
 	}
 
 	parsedData.decodedSignature = decodedSignature
+	parsedData.toBeSigned = []byte(parsedData.header + jwtSeparator + parsedData.body)
 	parsedData.parsed = true
-	c.wasDecodedBy(jwtDecoder, &parsedData)
 
+	c.wasDecodedBy(jwtDecoder, &parsedData)
 	return true
 }
 
 func jwtUnsign(c *Cookie, secret []byte) bool {
 	// We need to extract `toBeSigned` to prepare what we'll be signing.
 	parsedData := c.parsedDataFor(jwtDecoder).(*jwtParsedData)
-	toBeSigned := parsedData.header + jwtSeparator + parsedData.body
 
 	switch parsedData.algorithm {
 	case "sha1":
 		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha1HMAC(secret, []byte(toBeSigned))
+		computedSignature := sha1HMAC(secret, parsedData.toBeSigned)
 
 		// Compare this signature to the one in the `Cookie`.
 		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
 	case "sha256":
 		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha256HMAC(secret, []byte(toBeSigned))
+		computedSignature := sha256HMAC(secret, parsedData.toBeSigned)
 
 		// Compare this signature to the one in the `Cookie`.
 		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
 	case "sha384":
 		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha384HMAC(secret, []byte(toBeSigned))
+		computedSignature := sha384HMAC(secret, parsedData.toBeSigned)
 
 		// Compare this signature to the one in the `Cookie`.
 		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
 	case "sha512":
 		// Derive the correct signature, if this was the correct secret key.
-		computedSignature := sha512HMAC(secret, []byte(toBeSigned))
+		computedSignature := sha512HMAC(secret, parsedData.toBeSigned)
 
 		// Compare this signature to the one in the `Cookie`.
 		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
