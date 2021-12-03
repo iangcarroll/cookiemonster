@@ -10,6 +10,7 @@ import (
 type flaskParsedData struct {
 	data             string
 	timestamp        string
+	decodedTimestamp []byte
 	signature        string
 	decodedSignature []byte
 	algorithm        string
@@ -69,6 +70,15 @@ func flaskDecode(c *Cookie) bool {
 	parsedData.data = components[0]
 	parsedData.timestamp = components[1]
 	parsedData.signature = components[2]
+
+	// The current timestamp is embedded in a `>Q` Python struct. This can
+	// be up to eight bytes (usually three), but never more.
+	decodedTimestamp, err := base64.RawURLEncoding.DecodeString(parsedData.timestamp)
+	if err != nil || len(decodedTimestamp) > 8 {
+		return false
+	}
+
+	parsedData.decodedTimestamp = decodedTimestamp
 
 	// Flask encodes the signature with URL-safe base64
 	// without padding, so we must use `RawURLEncoding`.

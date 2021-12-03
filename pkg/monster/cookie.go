@@ -40,6 +40,10 @@ func (c *Cookie) Decode() (success bool) {
 		success = true
 	}
 
+	if itsdangerousDecode(c) {
+		success = true
+	}
+
 	if !success && c.unwrap() {
 		return c.Decode()
 	}
@@ -56,10 +60,11 @@ func (c *Cookie) Unsign(wl *Wordlist, concurrencyLimit uint64) (key []byte, succ
 	shouldUseRack := c.hasParsedDataFor(rackDecoder)
 	shouldUseExpress := c.hasParsedDataFor(expressDecoder)
 	shouldUseLaravel := c.hasParsedDataFor(laravelDecoder)
+	shouldUseItsDangerous := c.hasParsedDataFor(itsdangerousDecoder)
 
 	// This looks a bit silly right now, but as we add more decoders, this
 	// should be here to ensure we don't do pointless work.
-	if !shouldUseDjango && !shouldUseFlask && !shouldUseJwt && !shouldUseRack && !shouldUseExpress && !shouldUseLaravel {
+	if !shouldUseDjango && !shouldUseFlask && !shouldUseJwt && !shouldUseRack && !shouldUseExpress && !shouldUseLaravel && !shouldUseItsDangerous {
 		return nil, false
 	}
 
@@ -99,6 +104,10 @@ func (c *Cookie) Unsign(wl *Wordlist, concurrencyLimit uint64) (key []byte, succ
 
 			if shouldUseLaravel && laravelUnsign(c, entry) {
 				c.wasUnsignedBy(laravelDecoder, entry)
+			}
+
+			if shouldUseItsDangerous && itsdangerousUnsign(c, entry) {
+				c.wasUnsignedBy(itsdangerousDecoder, entry)
 			}
 		}(entry)
 	}
@@ -154,6 +163,10 @@ func (c *Cookie) String() (out string) {
 
 	if val, ok := c.decodedBy[laravelDecoder]; ok {
 		out += "Decoder laravel reports:\n" + val.(*laravelParsedData).String() + "\n"
+	}
+
+	if val, ok := c.decodedBy[itsdangerousDecoder]; ok {
+		out += "Decoder itsdangerous reports:\n" + val.(*itsdangerousParsedData).String() + "\n"
 	}
 
 	return out

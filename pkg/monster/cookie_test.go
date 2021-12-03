@@ -176,3 +176,35 @@ func BenchmarkUnsignFlask(b *testing.B) {
 		}
 	}
 }
+
+func TestDecodeItsDangerous(t *testing.T) {
+	validCookie := NewCookie("WzEsMiwzLDRd.wSPHqC0gR7VUqivlSukJ0IeTDgo")
+	if !validCookie.Decode() {
+		t.Errorf("cannot decode valid itsdangerous cookie")
+	}
+
+	wl := NewWordlist()
+	if err := wl.LoadFromArray([][]byte{[]byte("secret-key")}); err != nil {
+		t.Errorf("could not LoadFromArray")
+	}
+
+	if _, success := validCookie.Unsign(wl, 100); !success {
+		t.Errorf("could not unsign an unsignable cookie")
+	}
+}
+
+func TestDecodeItsDangerousTimed(t *testing.T) {
+	validCookie := NewCookie("ImFiYyI.YaqG3g.WkL6_TkNf8xz3OM8_4cuel2T0Rc")
+	if !validCookie.Decode() {
+		t.Errorf("cannot decode valid itsdangerous timed cookie")
+	}
+
+	wl := NewWordlist()
+	if err := wl.LoadFromArray([][]byte{[]byte("secret-key")}); err != nil {
+		t.Errorf("could not LoadFromArray")
+	}
+
+	if _, success := validCookie.Unsign(wl, 100); !success {
+		t.Errorf("could not unsign an unsignable cookie")
+	}
+}

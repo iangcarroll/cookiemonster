@@ -11,15 +11,16 @@ It's worth emphasizing that CookieMonster finds vulnerabilities in users of fram
 * Supports many algorithms for HMAC-based decoders, even if the framework typically only uses one.
 * Flexible base64-encoded wordlist format allows any sequence of bytes key to be added as an entry; ships with a reasonable default list.
 
-| Framework               | Supported | Notes                                   |
-|-------------------------|-----------|-----------------------------------------|
-| JSON Web Tokens         | ✅         | HS256, HS384, HS512                     |
-| Django                  | ✅         | Common algorithms                       |
-| Flask                   | ✅         | Common algorithms                       |
-| Rack                    | ✅         | Common algorithms                       |
-| Express (cookie-signer) | ✅         | Common algorithms                       |
-| Laravel                 | ✅         | AES-CBC-128/256 (GCM not yet supported) |
-| Others                  | ❌         | Not yet!                                |
+| Framework               | Supported | Notes                                                    |
+|-------------------------|-----------|----------------------------------------------------------|
+| JSON Web Tokens         | ✅         | HS256, HS384, HS512                                     |
+| Django                  | ✅         | Common algorithms                                       |
+| Flask                   | ✅         | Common algorithms                                       |
+| Rack                    | ✅         | Common algorithms                                       |
+| Express (cookie-signer) | ✅         | Common algorithms                                       |
+| Laravel                 | ✅         | AES-CBC-128/256 (GCM not yet supported)                 |
+| itsdangerous            | ✅         | URLSafeSerializer/URLSafeTimedSerializer (default salt) |
+| Others                  | ❌         | Not yet!                                                |
 
 ## Getting Started
 To install CookieMonster, install Go and then install the CLI:
