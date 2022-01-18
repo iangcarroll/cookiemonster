@@ -31,13 +31,19 @@ go install github.com/iangcarroll/cookiemonster/cmd/cookiemonster@latest
 
 CookieMonster only needs two essentials: a cookie to try and unsign, and a wordlist to use. If you don't have a wordlist, CookieMonster ships with a default wordlist from the [Flask-Unsign](https://github.com/Paradoxis/Flask-Unsign) project. CookieMonster wordlists are a bit different; each line must be encoded with base64. This is because Python projects are especially liberal with inserting garbage bytes into these keys, and we need to be able to properly handle them.
 
-An example of using the CLI:
+An example of using the CLI with a static cookie, or with a URL:
+
 ```bash
 % ./cookiemonster -cookie "gAJ9cQFYCgAAAHRlc3Rjb29raWVxAlgGAAAAd29ya2VkcQNzLg:1mgnkC:z5yDxzI06qYVAU3bkLaWYpADT4I"
+🍪 CookieMonster 1.3.0
+ℹ️ CookieMonster loaded the default wordlist; it has 38919 entries.
+✅ Success! I discovered the key for this cookie with the django decoder; it is "changeme".
 
-🍪 CookieMonster 1.0.0
-ℹ️ CookieMonster loaded the default wordlist; it has 38921 entries.
-✅ Success! I discovered the key for this cookie; it is: changeme
+% ./cookiemonster -url "https://httpbingo.org/cookies/set?abc=gAJ9cQFYCgAAAHRlc3Rjb29raWVxAlgGAAAAd29ya2VkcQNzLg:1mgnkC:z5yDxzI06qYVAU3bkLaWYpADT4I"
+🍪 CookieMonster 1.3.0
+⚠️  I got a non-200 status code from this URL; it was 302.
+ℹ️ CookieMonster loaded the default wordlist; it has 38919 entries.
+✅ Success! I discovered the key for this cookie with the django decoder; it is "changeme".
 ```
 
 ## Express support

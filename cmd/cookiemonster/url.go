@@ -11,31 +11,25 @@ import (
 	"github.com/iangcarroll/cookiemonster/pkg/monster"
 )
 
-const (
-	userAgent = `CookieMonster/` + version
-)
-
 var (
 	client = http.Client{
 		Timeout: time.Second * 10,
 
+		// We do not verify TLS certificates for ease of use, although we could
+		// make this configurable in the future.
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: true,
 			},
 		},
+
+		// We cannot easily follow redirects, as we don't have access to
+		// the cookies in the redirect chain.
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	}
 )
-
-func fetchURL(url string) (*http.Response, error) {
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("User-Agent", userAgent)
-	return client.Do(req)
-}
 
 func buildCookieMap(res *http.Response) map[string]*http.Cookie {
 	cookieMap := make(map[string]*http.Cookie)
@@ -54,6 +48,10 @@ func checkCookie(wl *monster.Wordlist, value string) {
 		return
 	}
 
+	if *verboseFlag {
+		fmt.Println(c.String())
+	}
+
 	if _, success := c.Unsign(wl, uint64(*concurrencyFlag)); !success {
 		return
 	}
@@ -64,7 +62,7 @@ func checkCookie(wl *monster.Wordlist, value string) {
 }
 
 func handleURL() {
-	res, err := fetchURL(*urlFlag)
+	res, err := client.Get(*urlFlag)
 	if err != nil {
 		failureMessage(fmt.Sprintf("Could not request the URL you provided, got error: %v", err))
 	}
