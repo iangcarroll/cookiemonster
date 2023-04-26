@@ -6,12 +6,14 @@ import (
 	"github.com/iangcarroll/cookiemonster/pkg/monster"
 )
 
-func handleCookie() {
+func handleCookie(cookieFlag string) {
 	// Attempt to decode this cookie.
-	cookie := monster.NewCookie(*cookieFlag)
+	cookie := monster.NewCookie(cookieFlag)
 
 	if !cookie.Decode() {
-		failureMessage("Sorry, I could not decode this cookie; it's likely not in a supported format.")
+		message := "Sorry, I could not decode this cookie; it's likely not in a supported format."
+        fmt.Println(ColorRed + "❌ " + message + ColorReset)
+        return
 	}
 
 	if *verboseFlag {
@@ -25,7 +27,9 @@ func handleCookie() {
 	if _, success := cookie.Unsign(wl, uint64(*concurrencyFlag)); success {
 		keyDiscoveredMessage(cookie)
 	} else {
-		failureMessage("Sorry, I did not discover the key for this cookie.")
+		message := "Sorry, I did not discover the key for this cookie."
+        fmt.Println(ColorRed + "❌ " + message + ColorReset)
+        return
 	}
 
 	handleResign(cookie)
