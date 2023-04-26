@@ -35,15 +35,20 @@ An example of using the CLI with a static cookie, or with a URL:
 
 ```bash
 % ./cookiemonster -cookie "gAJ9cQFYCgAAAHRlc3Rjb29raWVxAlgGAAAAd29ya2VkcQNzLg:1mgnkC:z5yDxzI06qYVAU3bkLaWYpADT4I"
-🍪 CookieMonster 1.3.0
+🍪 CookieMonster 1.4.1
 ℹ️ CookieMonster loaded the default wordlist; it has 38919 entries.
 ✅ Success! I discovered the key for this cookie with the django decoder; it is "changeme".
 
 % ./cookiemonster -url "https://httpbingo.org/cookies/set?abc=gAJ9cQFYCgAAAHRlc3Rjb29raWVxAlgGAAAAd29ya2VkcQNzLg:1mgnkC:z5yDxzI06qYVAU3bkLaWYpADT4I"
-🍪 CookieMonster 1.3.0
+🍪 CookieMonster 1.4.1
 ⚠️  I got a non-200 status code from this URL; it was 302.
 ℹ️ CookieMonster loaded the default wordlist; it has 38919 entries.
 ✅ Success! I discovered the key for this cookie with the django decoder; it is "changeme".
+
+% ./cookiemonster -file cookies.txt
+🍪 CookieMonster 1.4.1
+ℹ  CookieMonster loaded the default wordlist; it has 38923 entries.
+✅ Success! I discovered the key for this cookie with the flask decoder; it is "thisISaSECRET_1234".
 ```
 
 ## Express support
