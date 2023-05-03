@@ -20,12 +20,12 @@ func failureMessage(message string) {
 
 // Output a nice success message if we decode the cookie.
 func keyDiscoveredMessage(cookie *monster.Cookie) {
-	_, key, decoder := cookie.Result()
+	_, key, decoder, jwt := cookie.Result()
 
 	if isASCII(string(key)) {
-		fmt.Printf(ColorGreen+"✅ Success! I discovered the key for this cookie with the %s decoder; it is \"%s\".\n"+ColorReset, decoder, string(key))
+		fmt.Printf(ColorGreen+"✅ Success! I discovered the key for %s with the %s decoder; it is \"%s\".\n"+ColorReset, jwt, decoder, string(key))
 	} else {
-		fmt.Printf(ColorGreen+"✅ Success! I discovered the key for this cookie with the %s decoder; it is (in base64): \"%s\"."+ColorReset, decoder, base64Key(key))
+		fmt.Printf(ColorGreen+"✅ Success! I discovered the key for %s with the %s decoder; it is (in base64): \"%s\"."+ColorReset, jwt, decoder, base64Key(key))
 	}
 }
 

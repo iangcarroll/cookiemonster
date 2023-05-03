@@ -173,15 +173,15 @@ func (c *Cookie) String() (out string) {
 }
 
 // Returns the key and decoder if the cookie was decoded.
-func (c *Cookie) Result() (success bool, key []byte, decoder string) {
+func (c *Cookie) Result() (success bool, key []byte, decoder string, jwt string) {
 	c.unsignedMutex.RLock()
 	defer c.unsignedMutex.RUnlock()
 
 	if len(c.unsignedBy) == 0 {
-		return false, nil, ""
+		return false, nil, "", ""
 	}
 
-	return true, c.unsignedKey, c.unsignedBy
+	return true, c.unsignedKey, c.unsignedBy, c.raw
 }
 
 func (c *Cookie) wasDecodedBy(decoder string, data interface{}) {
