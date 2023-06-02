@@ -24,4 +24,12 @@ func TestNewWordlist(t *testing.T) {
 	if len(wl.entries) != 3 {
 		t.Error("new entries did not get loaded", len(wl.entries))
 	}
+
+	if err := wl.LoadDefault(); err != nil {
+		t.Error("could not load default wordlist")
+	}
+
+	if len(wl.entries) < 35000 {
+		t.Error("default entries did not get loaded", len(wl.entries))
+	}
 }

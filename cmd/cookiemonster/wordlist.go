@@ -10,7 +10,7 @@ func loadWordlist() *monster.Wordlist {
 	wl := monster.NewWordlist()
 
 	if *wordlistFlag == defaultWordlistKey {
-		if err := wl.LoadFromString(defaultWordlist); err != nil {
+		if err := wl.LoadDefault(); err != nil {
 			failureMessage(fmt.Sprintf("Sorry, I could not load the default wordlist. Please report this to the maintainers. Error: %v", err))
 		}
 

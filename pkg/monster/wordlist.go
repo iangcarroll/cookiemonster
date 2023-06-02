@@ -2,10 +2,14 @@ package monster
 
 import (
 	"bufio"
+	_ "embed"
 	"encoding/base64"
 	"os"
 	"strings"
 )
+
+//go:embed wordlists/flask-unsign.txt
+var defaultWordlist string
 
 func NewWordlist() *Wordlist {
 	return &Wordlist{entries: [][]byte{}}
@@ -43,6 +47,11 @@ func (w *Wordlist) Load(path string) error {
 
 	w.loaded = true
 	return nil
+}
+
+// Load default wordlist entries
+func (w *Wordlist) LoadDefault() error {
+	return w.LoadFromString(defaultWordlist)
 }
 
 // Load wordlist entries from the provided `path`.

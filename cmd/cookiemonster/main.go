@@ -19,9 +19,6 @@ var (
 	concurrencyFlag = flag.Int("concurrency", runtime.NumCPU(), "Optional. How many attempts should run concurrently; the default is 100.")
 	verboseFlag     = flag.Bool("verbose", false, "Optional. Enables additional output on how the cookie is decoded.")
 	resignFlag      = flag.String("resign", "", "Optional. Unencoded data to resign the cookie with; presently only supported by Django.")
-
-	//go:embed wordlists/flask-unsign.txt
-	defaultWordlist string
 )
 
 func main() {
