@@ -65,6 +65,7 @@ CookieMonster exposes `pkg/monster`, which allows other applications to easily t
 ```go
 import (
     "github.com/iangcarroll/cookiemonster/pkg/monster"
+    "errors"
 )
 
 var (
