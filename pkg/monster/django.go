@@ -85,10 +85,15 @@ func djangoDecode(c *Cookie) bool {
 	}
 
 	parsedData.decodedSignature = decodedSignature
-	parsedData.toBeSigned = []byte(parsedData.data + djangoSeparator + parsedData.timestamp)
+
+	// If compressed, we need to add back on the '.'
+	toBeSignedPrefix := ""
+	if parsedData.compressed {
+		toBeSignedPrefix = "."
+	}
+	parsedData.toBeSigned = []byte(toBeSignedPrefix + parsedData.data + djangoSeparator + parsedData.timestamp)
 	parsedData.parsed = true
 	c.wasDecodedBy(djangoDecoder, &parsedData)
-
 	return true
 }
 
