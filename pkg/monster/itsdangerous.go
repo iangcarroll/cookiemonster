@@ -130,7 +130,7 @@ func itsdangerousUnsign(c *Cookie, secret []byte) bool {
 	computedSignature := itsdangerousCompute(parsedData.algorithm, secret, parsedData.toBeSigned)
 
 	// Compare this signature to the one in the `Cookie`.
-	return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
+	return bytes.Equal(parsedData.decodedSignature, computedSignature)
 }
 
 func itsdangerousCompute(algorithm string, secret []byte, data []byte) []byte {

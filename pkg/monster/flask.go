@@ -117,7 +117,7 @@ func flaskUnsign(c *Cookie, secret []byte) bool {
 	computedSignature := flaskCompute(parsedData.algorithm, secret, parsedData.toBeSigned)
 
 	// Compare this signature to the one in the `Cookie`.
-	return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
+	return bytes.Equal(parsedData.decodedSignature, computedSignature)
 }
 
 func flaskResign(c *Cookie, data string, secret []byte) string {

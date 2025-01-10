@@ -93,25 +93,25 @@ func expressUnsign(c *Cookie, secret []byte) bool {
 		computedSignature := sha1HMAC(secret, []byte(toBeSigned))
 
 		// Compare this signature to the one in the `Cookie`.
-		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
+		return bytes.Equal(parsedData.decodedSignature, computedSignature)
 	case "sha256":
 		// Derive the correct signature, if this was the correct secret key.
 		computedSignature := sha256HMAC(secret, []byte(toBeSigned))
 
 		// Compare this signature to the one in the `Cookie`.
-		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
+		return bytes.Equal(parsedData.decodedSignature, computedSignature)
 	case "sha384":
 		// Derive the correct signature, if this was the correct secret key.
 		computedSignature := sha384HMAC(secret, []byte(toBeSigned))
 
 		// Compare this signature to the one in the `Cookie`.
-		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
+		return bytes.Equal(parsedData.decodedSignature, computedSignature)
 	case "sha512":
 		// Derive the correct signature, if this was the correct secret key.
 		computedSignature := sha512HMAC(secret, []byte(toBeSigned))
 
 		// Compare this signature to the one in the `Cookie`.
-		return bytes.Compare(parsedData.decodedSignature, computedSignature) == 0
+		return bytes.Equal(parsedData.decodedSignature, computedSignature)
 	default:
 		panic("unknown algorithm")
 	}

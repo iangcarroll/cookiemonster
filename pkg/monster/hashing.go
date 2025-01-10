@@ -2,10 +2,21 @@ package monster
 
 import (
 	"crypto/hmac"
+	"crypto/md5"
 	"crypto/sha1"
 	"crypto/sha256"
 	"crypto/sha512"
 )
+
+func md5Digest(data string) []byte {
+	h := md5.New()
+
+	if writtenLength, err := h.Write([]byte(data)); err != nil || writtenLength != len(data) {
+		panic("md5Digest could not properly write data")
+	}
+
+	return h.Sum(nil)
+}
 
 func sha1Digest(data string) []byte {
 	h := sha1.New()

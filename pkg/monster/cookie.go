@@ -44,6 +44,10 @@ func (c *Cookie) Decode() (success bool) {
 		success = true
 	}
 
+	if codeigniterDecode(c) {
+		success = true
+	}
+
 	if !success && c.unwrap() {
 		return c.Decode()
 	}
@@ -61,10 +65,11 @@ func (c *Cookie) Unsign(wl *Wordlist, concurrencyLimit uint64) (key []byte, succ
 	shouldUseExpress := c.hasParsedDataFor(expressDecoder)
 	shouldUseLaravel := c.hasParsedDataFor(laravelDecoder)
 	shouldUseItsDangerous := c.hasParsedDataFor(itsdangerousDecoder)
+	shouldUseCodeigniter := c.hasParsedDataFor(codeigniterDecoder)
 
 	// This looks a bit silly right now, but as we add more decoders, this
 	// should be here to ensure we don't do pointless work.
-	if !shouldUseDjango && !shouldUseFlask && !shouldUseJwt && !shouldUseRack && !shouldUseExpress && !shouldUseLaravel && !shouldUseItsDangerous {
+	if !shouldUseDjango && !shouldUseFlask && !shouldUseJwt && !shouldUseRack && !shouldUseExpress && !shouldUseLaravel && !shouldUseItsDangerous && !shouldUseCodeigniter {
 		return nil, false
 	}
 
@@ -108,6 +113,10 @@ func (c *Cookie) Unsign(wl *Wordlist, concurrencyLimit uint64) (key []byte, succ
 
 			if shouldUseItsDangerous && itsdangerousUnsign(c, entry) {
 				c.wasUnsignedBy(itsdangerousDecoder, entry)
+			}
+
+			if shouldUseCodeigniter && codeigniterUnsign(c, entry) {
+				c.wasUnsignedBy(codeigniterDecoder, entry)
 			}
 		}(entry)
 	}
@@ -167,6 +176,10 @@ func (c *Cookie) String() (out string) {
 
 	if val, ok := c.decodedBy[itsdangerousDecoder]; ok {
 		out += "Decoder itsdangerous reports:\n" + val.(*itsdangerousParsedData).String() + "\n"
+	}
+
+	if val, ok := c.decodedBy[codeigniterDecoder]; ok {
+		out += "Decoder codeigniter reports:\n" + val.(*codeigniterParsedData).String() + "\n"
 	}
 
 	return out
